@@ -1,0 +1,114 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: zesthr-api
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file: .env
+    depends_on:
+      - postgres
+      - mongodb
+      - redis
+      - elasticsearch
+      - minio
+    volumes:
+      - ./models:/app/models
+      - ./docs:/app/docs
+      - /tmp/uploads:/tmp/uploads
+    networks:
+      - zesthr-network
+
+  postgres:
+    image: postgres:14-alpine
+    container_name: zesthr-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-zesthr}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - zesthr-network
+
+  mongodb:
+    image: mongo:6
+    container_name: zesthr-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-password}
+      MONGO_INITDB_DATABASE: ${MONGODB_DB:-zesthr}
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - zesthr-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: zesthr-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - zesthr-network
+
+  elasticsearch:
+    image: elasticsearch:8.7.1
+    container_name: zesthr-elasticsearch
+    restart: unless-stopped
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ports:
+      - "${ELASTICSEARCH_PORT:-9200}:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - zesthr-network
+
+  minio:
+    image: minio/minio
+    container_name: zesthr-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY:-minio}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY:-minio123}
+    command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - zesthr-network
+
+networks:
+  zesthr-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  mongodb-data:
+  redis-data:
+  elasticsearch-data:
+  minio-data:
