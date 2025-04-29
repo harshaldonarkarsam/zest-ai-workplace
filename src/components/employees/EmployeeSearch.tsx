@@ -34,8 +34,8 @@ export function EmployeeSearch({ onSearch }: EmployeeSearchProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       search: "",
-      department: "",
-      status: "",
+      department: "all",
+      status: "all",
     },
   });
 
@@ -83,7 +83,7 @@ export function EmployeeSearch({ onSearch }: EmployeeSearchProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">All Departments</SelectItem>
+                    <SelectItem value="all">All Departments</SelectItem>
                     <SelectItem value="engineering">Engineering</SelectItem>
                     <SelectItem value="marketing">Marketing</SelectItem>
                     <SelectItem value="sales">Sales</SelectItem>
@@ -111,7 +111,7 @@ export function EmployeeSearch({ onSearch }: EmployeeSearchProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="">All Status</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="onleave">On Leave</SelectItem>
                     <SelectItem value="offboarding">Offboarding</SelectItem>
