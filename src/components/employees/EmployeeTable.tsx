@@ -104,6 +104,9 @@ interface EmployeeTableProps {
 }
 
 export function EmployeeTable({ data = employees, isLoading = false }: EmployeeTableProps) {
+  console.log("EmployeeTable rendering with data:", data);
+  console.log("Loading state:", isLoading);
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active":
